@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "327669519303",
+    "firebase_url": "https://ticketglass-test-696c3-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "ticketglass-test-696c3",
+    "storage_bucket": "ticketglass-test-696c3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327669519303:android:6e5a6fd7e532298d703fe2",
+        "android_client_info": {
+          "package_name": "com.example.ticketglass_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "327669519303-v9ilo36715skpilps97tjk2pgqhfff7n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ticketglass_mobile",
+            "certificate_hash": "2c1fdab3fac53bfb192f113cc73169491032f623"
+          }
+        },
+        {
+          "client_id": "327669519303-i7opvfd50dp4dvadls4a1ju029b0bq5s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbsN-xVd2oA9hOoG2ghXEUuugRf18_M0o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "327669519303-i7opvfd50dp4dvadls4a1ju029b0bq5s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
