@@ -314,13 +314,13 @@ class _OtpPageState extends State<OtpPage> {
       controller: otpController,
       onCompleted: (value) async{
     
-      if (value.isNotEmpty && widget.verificationId != null) {
+      // if (value.isNotEmpty && widget.verificationId != null) {
         customProgressIdicator(context);
       PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.verificationId!, smsCode: value);
       await FirebaseAuth.instance.signInWithCredential(credential);
       Navigator.pop(context);
       
-      }
+      // }
     
       },
       onChanged: (value) {
