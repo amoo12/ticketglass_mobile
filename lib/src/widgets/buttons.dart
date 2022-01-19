@@ -6,25 +6,24 @@ class ButtonWidget extends StatelessWidget {
   final String? text;
   final int?
       buttonType; //default type: accentColor button with text, type 2: reverse
-   final VoidCallback? onPressed;
+  final VoidCallback? onPressed;
 
   const ButtonWidget({
     this.context,
     this.text,
     this.onPressed,
-     this.buttonType,
+    this.buttonType,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      
         style: ElevatedButton.styleFrom(
-          
           padding: EdgeInsets.symmetric(vertical: 15),
-          primary:
-              buttonType == 2 ? Colors.white : Theme.of(context).accentColor,
+          primary: buttonType == 2
+              ? Colors.white
+              : Theme.of(context).colorScheme.primaryVariant,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
             // side: buttonType == 2
@@ -33,15 +32,16 @@ class ButtonWidget extends StatelessWidget {
             // ),
           ),
         ),
-        child: Text(text ?? '',
-            // style: buttonType == 2
-            //     ? Theme.of(context)
-            //         .textTheme
-            //         .button
-            //         .copyWith(color: Theme.of(context).primaryColor)
-            //     : Theme.of(context).textTheme.button
-            // .copyWith(color: Theme.of(context).primaryColor),
-            ),
-        onPressed: onPressed );
+        child: Text(
+          text ?? '',
+          // style: buttonType == 2
+          //     ? Theme.of(context)
+          //         .textTheme
+          //         .button
+          //         .copyWith(color: Theme.of(context).primaryColor)
+          //     : Theme.of(context).textTheme.button
+          // .copyWith(color: Theme.of(context).primaryColor),
+        ),
+        onPressed: onPressed);
   }
 }

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ticketglass_mobile/src/auth/login.dart';
 
 import 'package:ticketglass_mobile/src/providers/auth_state_provider.dart';
-import 'src/sample_feature/sample_item_list_view.dart';
+import 'src/events_pages/events_list_view.dart';
 
 class Wrapper extends ConsumerWidget {
   const Wrapper({Key? key}) : super(key: key);

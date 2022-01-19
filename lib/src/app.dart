@@ -3,12 +3,28 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ticketglass_mobile/auth_wrapper.dart';
 
-import 'sample_feature/sample_item_details_view.dart';
-import 'sample_feature/sample_item_list_view.dart';
+import 'events_pages/order_details.dart';
+import 'events_pages/events_list_view.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
+Map<int, Color> color = {
+  50: Color.fromRGBO(248, 250, 252, 1),
+  100: Color.fromRGBO(241, 245, 249, 1),
+  200: Color.fromRGBO(226, 232, 240, 1),
+  300: Color.fromRGBO(203, 213, 225, 1),
+  400: Color.fromRGBO(148, 163, 184, 1),
+  500: Color.fromRGBO(100, 116, 139, 1),
+  600: Color.fromRGBO(71, 85, 105, 1),
+  700: Color.fromRGBO(51, 65, 85, 1),
+  800: Color.fromRGBO(30, 41, 59, 1),
+  900: Color.fromRGBO(15, 23, 42, 1),
+};
+
+MaterialColor colorCustom = MaterialColor(0xFF37474f, color);
+
 /// The Widget that configures your application.
+///
 class MyApp extends StatelessWidget {
   const MyApp({
     Key? key,
@@ -57,9 +73,14 @@ class MyApp extends StatelessWidget {
           // Define a light and dark color theme. Then, read the user's
           // preferred ThemeMode (light, dark, or system default) from the
           // SettingsController to display the correct theme.
-          theme: ThemeData(),
+          theme: ThemeData(
+            primarySwatch: colorCustom,
+            // brightness: settingsController.themeMode == ThemeMode.system
+            //     ? Theme.of(context)!.brightness
+            //     : settingsController.themeMode,
+          ),
           darkTheme: ThemeData.dark(),
-          themeMode: ThemeMode.light ,
+          themeMode: ThemeMode.light,
           // settingsController.themeMode,
 
           // Define a function to handle named routes in order to support

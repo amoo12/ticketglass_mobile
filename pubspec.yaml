@@ -20,6 +20,7 @@ dependencies:
   cached_network_image: ^3.2.0
   animations: ^2.0.2
   fluttertoast: ^8.0.7
+  flutter_svg: ^1.0.2
 
   
   flutter:
@@ -42,4 +43,4 @@ flutter:
 
   assets:
     # Add assets from the images directory to the application.
-    - assets/images/
+    - assets/
