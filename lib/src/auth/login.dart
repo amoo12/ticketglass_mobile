@@ -2,6 +2,7 @@
 import 'dart:io' show Platform;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:logger/logger.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
@@ -9,6 +10,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 // import 'dart:ui' as ui show Image;
 
 import 'package:ticketglass_mobile/src/widgets/buttons.dart';
+import 'package:ticketglass_mobile/src/widgets/custom_toast.dart';
 import 'package:ticketglass_mobile/src/widgets/progress_indicator.dart';
     Logger logger =  Logger();
 
@@ -23,13 +25,13 @@ class _LoginState extends State<Login> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   late PageController pageController;
-
   final TextEditingController phoneController = TextEditingController();
   PhoneNumber number = PhoneNumber(isoCode: 'QA');
   final _formKey = GlobalKey<FormState>();
 
-  String? verificationId  ;
+  String verificationId='';
 
+  late FToast fToast;
 
   void getPhoneNumber(PhoneNumber phoneNumber) async {
     final String phone = phoneNumber.phoneNumber.toString();
@@ -38,7 +40,7 @@ class _LoginState extends State<Login> {
     customProgressIdicator(context);
       logger.d('verifying phone number');
       await FirebaseAuth.instance.verifyPhoneNumber(
-  phoneNumber: phone, //'+97412345678',
+  phoneNumber:  phone, //'+97412345678',
   verificationCompleted: (PhoneAuthCredential credential) async {
     logger.d('verificationCompleted');
 
@@ -46,6 +48,7 @@ class _LoginState extends State<Login> {
 // / ANDROID ONLY!
     // Sign the user in (or link) with the auto-generated credential
     await FirebaseAuth.instance.signInWithCredential(credential);
+    Navigator.pop(context);
     } 
     // TODO: confirm the credential on iOS
   },
@@ -54,6 +57,9 @@ class _LoginState extends State<Login> {
       print('The provided phone number is not valid.');
     }
     logger.w( 'verificationFailed',  e);
+
+    Navigator.pop(context);
+    showToast(fToast, 'verification Failed!! try Again', 3);
     
     // Handle other errors
   },
@@ -93,11 +99,22 @@ class _LoginState extends State<Login> {
   }
 
 
+  // go to next page
 next() {
   setState(() {
-    
     pageController.nextPage(
         duration: Duration(milliseconds: 600), curve: Curves.easeInOutExpo);
+  // pageIndex++;
+  });
+
+  }
+
+  // go to previous page
+prev() {
+  setState(() {
+    pageController.previousPage(
+        duration: Duration(milliseconds: 600), curve: Curves.easeInOutExpo);
+  // pageIndex--;
   });
   }
 
@@ -107,8 +124,8 @@ next() {
     pageController = PageController(initialPage: 0, keepPage: true);
     // _auth = context.read(authServicesProvider);
     // TODO: add toasts
-    // fToast = FToast();
-    // fToast.init(context);
+    fToast = FToast();
+    fToast.init(context);
   }
 
 
@@ -116,6 +133,12 @@ next() {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      // appBar:  AppBar(
+        
+      //   automaticallyImplyLeading: true,
+      //   // back arrow
+      //   leading: 
+      // ),
       body: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: SingleChildScrollView(
@@ -181,7 +204,7 @@ next() {
                         ]
                     ),
                     child: InternationalPhoneNumberInput(
-                        
+                        autoFocus: true,
                                     scrollPadding: EdgeInsets.only(bottom:  150),
               onInputChanged: (PhoneNumber number) {
                 // print(number.phoneNumber,);
@@ -237,7 +260,8 @@ next() {
                                   ),
                               ],
                             ),
-                          OtpPage(verificationId: this.verificationId),
+                          OtpPage(verificationId: verificationId, ftoast: fToast,prev:prev),
+                          
                           ],
                         ),
                       ),
@@ -252,25 +276,27 @@ next() {
   }
 }  
 
-class OtpPage extends StatefulWidget {
-  final String? verificationId;
-  const OtpPage({required this.verificationId, Key? key}) : super(key: key);
+// class OtpPage extends StatefulWidget {
+//   const OtpPage({required this.verificationId, Key? key}) : super(key: key);
 
+//   @override
+//   _OtpPageState createState() => _OtpPageState();
+// }
+
+class OtpPage extends StatelessWidget {
+   OtpPage({required this.verificationId, required this.ftoast,required this.prev, Key? key}) : super(key: key);
+  final FToast ftoast;
+  final String verificationId;
+  final Function prev;
+  late final TextEditingController otpController = TextEditingController();
+  late final FocusNode otpFocusNode = FocusNode();
   @override
-  _OtpPageState createState() => _OtpPageState();
-}
-
-class _OtpPageState extends State<OtpPage> {
-
-  late TextEditingController otpController ;
-  @override
-  void initState() {
+  // void initState() {
     // TODO: implement initState
-    super.initState();
 
-    otpController = TextEditingController();
+    // otpController = 
+    // otpFocusNode = 
 
-  }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -293,8 +319,10 @@ class _OtpPageState extends State<OtpPage> {
           ),
           PinCodeTextField(
           appContext: context,
+            autoFocus:  true,
           keyboardType: TextInputType.number,
-          
+          enablePinAutofill: true,
+  focusNode: otpFocusNode,
       length: 6,
       obscureText: false,
       animationType: AnimationType.fade,
@@ -313,14 +341,18 @@ class _OtpPageState extends State<OtpPage> {
       enableActiveFill: true,
       controller: otpController,
       onCompleted: (value) async{
-    
       // if (value.isNotEmpty && widget.verificationId != null) {
         customProgressIdicator(context);
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.verificationId!, smsCode: value);
+        try {
+          
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: verificationId, smsCode: value);
       await FirebaseAuth.instance.signInWithCredential(credential);
       Navigator.pop(context);
+        } catch (e) {
+            Navigator.pop(context);
+            showToast(ftoast, e.toString());
+        }
       
-      // }
     
       },
       onChanged: (value) {
@@ -333,13 +365,37 @@ class _OtpPageState extends State<OtpPage> {
       print("Allowing to paste $text");
       //if you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
       //but you can show anything you want here, like your pop up saying wrong paste format or etc
-      return true;
+      return false;
       },
     ),
-    
+        
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              child: Row(
+                children: const [
+                  Icon(Icons.arrow_back),
+          
+                  Text(
+                    'Go back',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+              onPressed: () {
+                // resendOtp();
+                prev();
+              },
+            ),
+          ],
+        ),
+        
         ],
       ),
     );
-    
   }
 }
