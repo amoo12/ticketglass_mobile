@@ -41,7 +41,7 @@ class _LoginState extends State<Login> {
       customProgressIdicator(context);
       logger.d('verifying phone number');
       await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phone, //'+97412345678',
+        phoneNumber: '+97412345678', //phone,
         verificationCompleted: (PhoneAuthCredential credential) async {
           logger.d('verificationCompleted');
 
