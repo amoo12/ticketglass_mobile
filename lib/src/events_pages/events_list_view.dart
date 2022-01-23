@@ -97,7 +97,9 @@ class SampleItemListView extends ConsumerWidget {
                             // to the app after it has been killed while running in the
                             // background, the navigation stack is restored.
                             Navigator.restorablePushNamed(
-                                context, SettingsView.routeName);
+                              context,
+                              SettingsView.routeName,
+                            );
                           },
                         ),
                       ],
@@ -159,6 +161,8 @@ class SampleItemListView extends ConsumerWidget {
                                               child: CachedNetworkImage(
                                                 height: 150,
                                                 fit: BoxFit.cover,
+                                                cacheKey: orders[index]
+                                                    .eventId,
                                                 imageUrl: events[index].imageUrl == null ? '': events[index].imageUrl.toString(),
                                                     
                                                 placeholder: (context, url) =>
@@ -210,7 +214,17 @@ class SampleItemListView extends ConsumerWidget {
                                         ),
                                       ),
                                     ),
+                                  routeSettings: RouteSettings(
+                                      name: SampleItemDetailsView.routeName,
 
+                                      arguments: {
+                                        'event': events[index],
+                                        'order': orders[index],
+                                        // "money": 'money is funny'
+                                      },
+                                    ),
+                                    
+                                    
                                     openBuilder:
                                         (BuildContext c, VoidCallback action) =>
                                             SampleItemDetailsView(),
