@@ -6,6 +6,9 @@ import 'package:ticketglass_mobile/src/models/event.dart';
 import 'package:ticketglass_mobile/src/models/order.dart';
 import 'package:ticketglass_mobile/src/widgets/custom_icons.dart';
 import 'package:ticketglass_mobile/src/widgets/ticket_svg.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:async';
+
 
 logger.Logger log = logger.Logger();
 
@@ -268,13 +271,10 @@ class SampleItemDetailsView extends StatelessWidget {
                               child: Column(
                                 children: [
                                   Container(
-                                    // color: Colors.white,
                                     height: MediaQuery.of(context).size.width *
                                         0.45,
                                     width: MediaQuery.of(context).size.width *
                                         0.45,
-
-                                    // width: 200,
                                     // round corners
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
@@ -288,6 +288,8 @@ class SampleItemDetailsView extends StatelessWidget {
                                             blurStyle: BlurStyle.outer)
                                       ],
                                     ),
+                                    child: QrCodeWidget(
+                                        event: event, order: order),
                                   ),
                                   SizedBox(
                                     height: 20,
@@ -309,6 +311,76 @@ class SampleItemDetailsView extends StatelessWidget {
             ],
           )),
       // ),
+    );
+  }
+}
+
+class QrCodeWidget extends StatefulWidget {
+  const QrCodeWidget({required this.event, required this.order, Key? key})
+      : super(key: key);
+
+  final Event event;
+  final Order order;
+  @override
+  _QrCodeWidgetState createState() => _QrCodeWidgetState();
+}
+
+class _QrCodeWidgetState extends State<QrCodeWidget> {
+  // call function every 5 second
+  late Timer _timer;
+  int _count = 0;
+
+  // create a funciton to call every 5 second
+  // late Timer _timer;
+  int _start = 10;
+
+  void startTimer() {
+    const oneSec = Duration(seconds: 30);
+    _timer = Timer.periodic(
+      oneSec,
+      (Timer timer) {
+        // if (_start == 0) {
+        //   setState(() {
+        //     timer.cancel();
+        //   });
+        // } else {
+        // TODO: make api call to generate qr code hash
+        log.d(_start);
+        setState(() {
+          _start--;
+        });
+        // }
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    // _incrementCounter();
+    startTimer();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _timer.cancel();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        QrImage(
+          data: _start.toString(),
+          version: 2,
+          // size: 200.0,
+          // embeddedImage: AssetImage('assets/images/flutter_logo.png'),
+          foregroundColor: Theme.of(context).colorScheme.secondary,
+        ),
+      ],
     );
   }
 }
