@@ -52,4 +52,26 @@ class DatabaseService {
       return eventDoc.data();
     }
   }
+
+
+
+  Future<List<Event>> getEvente(String uid) async {
+    List<Event> events = [];
+    final results = await eventsCollection
+        .where('organizerId', isEqualTo: uid)
+        .orderBy('orderTime', descending: true)
+        .get();
+
+    events = results.docs.map((doc) {
+      Event event = doc.data();
+      // events.add(event);
+      return event;
+    }).toList();
+
+    return events;
+
+    
+  }
 }
+
+

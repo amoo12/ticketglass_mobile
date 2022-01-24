@@ -350,13 +350,7 @@ class SampleItemListView extends ConsumerWidget {
 
 
 // convert timestamp to local date string
-String timestampToString(String timestamp) {
-  DateTime date = DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp));
-  var fromat = DateFormat('EE dd-MM-yyyy hh:mm');
-  String formatted = fromat.format(date);
-  return formatted;
-  
-}
+
 
 
 
