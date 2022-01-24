@@ -16,6 +16,7 @@ class EventsList extends ConsumerWidget {
     final String uid = auth.asData!.value!.uid;
 
     return Scaffold(
+      backgroundColor: Colors.blueGrey[50],
       appBar: AppBar(
         title: Text('My Events'),
       ),
@@ -90,7 +91,7 @@ class EventsList extends ConsumerWidget {
                                                 : Colors.red),
                               ),
                               onTap: () {
-                                Navigator.pushNamed(context, '/event',
+                                Navigator.pushNamed(context, '/event_details',
                                     arguments: events[index]);
                               },
                             );

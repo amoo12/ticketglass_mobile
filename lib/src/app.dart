@@ -3,6 +3,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logger/logger.dart';
 import 'package:ticketglass_mobile/auth_wrapper.dart';
+import 'package:ticketglass_mobile/src/organizer/event_details.dart';
 
 import 'events_pages/order_details.dart';
 import 'events_pages/events_list_view.dart';
@@ -100,14 +101,11 @@ class MyApp extends StatelessWidget {
                 switch (routeSettings.name) {
                   case SettingsView.routeName: 
                     return SettingsView(controller: settingsController);
+                  case EventDetails.routeName:
+                    return EventDetails();
+
                   case SampleItemDetailsView.routeName:
-                    {
-                      return SampleItemDetailsView(
-                          // event: null,
-                          // arguments['event'],
-                          // arguments['order']);
-                          );
-                    }
+                    return SampleItemDetailsView();
                     
                   case SampleItemListView.routeName:
                   default:

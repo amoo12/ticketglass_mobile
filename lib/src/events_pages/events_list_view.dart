@@ -214,6 +214,7 @@ class SampleItemListView extends ConsumerWidget {
                                         ),
                                       ),
                                     ),
+                                    
                                   routeSettings: RouteSettings(
                                       name: SampleItemDetailsView.routeName,
 
