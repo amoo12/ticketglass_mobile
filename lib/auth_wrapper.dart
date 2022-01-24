@@ -39,7 +39,7 @@ class Wrapper extends ConsumerWidget {
                 } else if (snapshot.hasError) {
                   fToast.init(context);
                   showToast(fToast, 'something went wrong! try again');
-                  return Text("${snapshot.error}");
+                  return Login();
                 }
                 return const Scaffold(
           body: Center(
