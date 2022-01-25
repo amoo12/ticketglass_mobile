@@ -1,14 +1,18 @@
+import 'dart:convert';
+// import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart' as logger;
-import 'package:ticketglass_mobile/src/events_pages/events_list_view.dart';
 import 'package:ticketglass_mobile/src/models/event.dart';
 import 'package:ticketglass_mobile/src/models/order.dart';
+import 'package:ticketglass_mobile/src/providers/auth_state_provider.dart';
 import 'package:ticketglass_mobile/src/widgets/custom_icons.dart';
 import 'package:ticketglass_mobile/src/widgets/ticket_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:async';
-
+import 'package:http/http.dart' as http;
 
 logger.Logger log = logger.Logger();
 
@@ -288,8 +292,109 @@ class SampleItemDetailsView extends StatelessWidget {
                                             blurStyle: BlurStyle.outer)
                                       ],
                                     ),
-                                    child: QrCodeWidget(
-                                        event: event, order: order),
+                                    child: event.isScanOpen()
+                                        ? order.scanned == true
+                                            ? Stack(
+                                                children: [
+                                                  QrImage(
+                                                    data: '000',
+                                                    version: 2,
+                                                    dataModuleStyle:
+                                                        QrDataModuleStyle(
+                                                            dataModuleShape:
+                                                                QrDataModuleShape
+                                                                    .circle),
+                                                    foregroundColor:
+                                                        Colors.green,
+                                                  ),
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                      color: Colors.grey
+                                                          .withOpacity(0.7),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                            color: Colors.black
+                                                                .withOpacity(
+                                                                    0.15),
+                                                            blurRadius: 8,
+                                                            spreadRadius: 3,
+                                                            blurStyle: BlurStyle
+                                                                .normal)
+                                                      ],
+                                                    ),
+                                                    child: Center(
+                                                      child: Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                              color:  Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      100),
+                                                        ),
+                                                        child: Icon(
+                                                          Icons
+                                                              .check_circle_outline_outlined,
+                                                          color: Colors.green,
+                                                          size: 50,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
+                                              )
+                                            : QrCodeWidget(
+                                                event: event, order: order)
+                                        : Stack(
+                                            children: [
+                                              QrImage(
+                                                data: '000',
+                                                version: 2,
+                                                dataModuleStyle:
+                                                    QrDataModuleStyle(
+                                                        dataModuleShape:
+                                                            QrDataModuleShape
+                                                                .circle),
+                                                foregroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .secondary,
+                                              ),
+                                              Container(
+                                                // color:  Colors.black.withOpacity(0.5),
+                                                // rounded corners
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  color: Colors.grey
+                                                      .withOpacity(0.7),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.15),
+                                                        blurRadius: 8,
+                                                        spreadRadius: 3,
+                                                        blurStyle:
+                                                            BlurStyle.normal)
+                                                  ],
+                                                ),
+                                                child: Center(
+                                                  child: Icon(
+                                                    Icons
+                                                        .lock_outline_rounded,
+                                                    color: Colors.grey[600],
+                                                    size: MediaQuery.of(context)
+                                                            .size
+                                                            .width *
+                                                        0.15,
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
                                   ),
                                   SizedBox(
                                     height: 20,
@@ -315,7 +420,7 @@ class SampleItemDetailsView extends StatelessWidget {
   }
 }
 
-class QrCodeWidget extends StatefulWidget {
+class QrCodeWidget extends ConsumerStatefulWidget {
   const QrCodeWidget({required this.event, required this.order, Key? key})
       : super(key: key);
 
@@ -325,29 +430,40 @@ class QrCodeWidget extends StatefulWidget {
   _QrCodeWidgetState createState() => _QrCodeWidgetState();
 }
 
-class _QrCodeWidgetState extends State<QrCodeWidget> {
-  // call function every 5 second
+class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
   late Timer _timer;
-  int _count = 0;
 
-  // create a funciton to call every 5 second
-  // late Timer _timer;
-  int _start = 10;
+  String _start = '000';
+  late String? idToken;
 
-  void startTimer() {
-    const oneSec = Duration(seconds: 30);
+  // generate qr code every 20 second
+  void startTimer() async {
+    const oneSec = Duration(seconds: 20);
+
     _timer = Timer.periodic(
       oneSec,
-      (Timer timer) {
-        // if (_start == 0) {
-        //   setState(() {
-        //     timer.cancel();
-        //   });
-        // } else {
-        // TODO: make api call to generate qr code hash
-        log.d(_start);
+      (Timer timer) async {
+        
+        // TODO: make int separate funcitons for each task
+        // get user token to authenticate on the server
+        idToken = await ref.read(authStateProvider).value?.getIdToken();
+
+        // generate a new qr code
+        final res = await http
+            .post(Uri.http('192.168.10.7:3000', '/api/tickets/generateQrString'), body: {
+          'orderId': widget.order.orderId
+        }, headers: {
+          'Authorization': '$idToken',
+        });
+
+        log.d(idToken);
+        
+        //  decoded & print response body
+        final data = jsonDecode(res.body);
+        // log.d(data);
+
         setState(() {
-          _start--;
+          _start = data['qrString'];
         });
         // }
       },
@@ -357,7 +473,6 @@ class _QrCodeWidgetState extends State<QrCodeWidget> {
   @override
   void initState() {
     // TODO: implement initState
-    // _incrementCounter();
     startTimer();
     super.initState();
   }
@@ -369,15 +484,19 @@ class _QrCodeWidgetState extends State<QrCodeWidget> {
     _timer.cancel();
   }
 
+  // TODO: implement future builder to show loader beferer qr code is generated for the first time
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         QrImage(
-          data: _start.toString(),
-          version: 2,
+          data: _start,
+          version: QrVersions.auto,
           // size: 200.0,
           // embeddedImage: AssetImage('assets/images/flutter_logo.png'),
+          dataModuleStyle:
+              QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle),
           foregroundColor: Theme.of(context).colorScheme.secondary,
         ),
       ],

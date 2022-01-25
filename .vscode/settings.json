@@ -1,4 +1,5 @@
 {
+	"debug.internalConsoleOptions": "neverOpen",
 	"java.configuration.updateBuildConfiguration": "automatic",
 	"workbench.colorCustomizations": {
 		"sash.hoverBorder": "#3399ff",

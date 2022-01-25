@@ -11,6 +11,7 @@ class Order {
   double? totalPrice;
   String? txId;
   String? userId;
+  bool? scanned;
   Order({
     required this.eventId,
     this.orderId,
@@ -20,6 +21,7 @@ class Order {
     this.totalPrice,
     this.txId,
     this.userId,
+    this.scanned,
   });
 
   Map<String, dynamic> toMap() {
@@ -48,6 +50,7 @@ class Order {
       totalPrice: map['totalPrice']?.toDouble(),
       txId: map['txId'],
       userId: map['userId'],
+      scanned: map['scanned'] ?? false,
     );
   }
 

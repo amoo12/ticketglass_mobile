@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ticketglass_mobile/src/models/event.dart';
 import 'package:ticketglass_mobile/src/providers/auth_state_provider.dart';
 import 'package:ticketglass_mobile/src/services/database_service.dart';
+import 'package:ticketglass_mobile/src/settings/settings_view.dart';
 import 'package:ticketglass_mobile/src/widgets/customt_tooltip.dart';
 
 class EventsList extends ConsumerWidget {
@@ -19,6 +20,23 @@ class EventsList extends ConsumerWidget {
       backgroundColor: Colors.blueGrey[50],
       appBar: AppBar(
         title: Text('My Events'),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.settings,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              // Navigate to the settings page. If the user leaves and returns
+              // to the app after it has been killed while running in the
+              // background, the navigation stack is restored.
+              Navigator.restorablePushNamed(
+                context,
+                SettingsView.routeName,
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SizedBox(
