@@ -24,11 +24,14 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late PageController pageController;
   final TextEditingController phoneController = TextEditingController();
   PhoneNumber number = PhoneNumber(isoCode: 'QA');
   final _formKey = GlobalKey<FormState>();
+late final TextEditingController otpController = TextEditingController();
+  late final FocusNode otpFocusNode;
 
   String verificationId = '';
 
@@ -41,7 +44,7 @@ class _LoginState extends State<Login> {
       customProgressIdicator(context);
       logger.d('verifying phone number');
       await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: '+97412345678', //phone,
+        phoneNumber: '+97411223344', //phone,
         verificationCompleted: (PhoneAuthCredential credential) async {
           logger.d('verificationCompleted');
 
@@ -93,6 +96,7 @@ class _LoginState extends State<Login> {
   void dispose() {
     phoneController.dispose();
     pageController.dispose();
+    // otpFocusNode.dispose();
 
     super.dispose();
   }
@@ -102,7 +106,13 @@ class _LoginState extends State<Login> {
     setState(() {
       pageController.nextPage(
           duration: Duration(milliseconds: 600), curve: Curves.easeInOutExpo);
-      // pageIndex++;
+
+  if (!otpFocusNode.hasFocus) {
+    FocusScope.of(context).requestFocus(otpFocusNode);
+  
+  }
+      otpFocusNode.focusInDirection(TraversalDirection.down);
+
     });
   }
 
@@ -111,6 +121,9 @@ class _LoginState extends State<Login> {
     setState(() {
       pageController.previousPage(
           duration: Duration(milliseconds: 600), curve: Curves.easeInOutExpo);
+      // otpFocusNode.unfocus();
+      otpFocusNode.focusInDirection(TraversalDirection.up);
+
       // pageIndex--;
     });
   }
@@ -119,7 +132,10 @@ class _LoginState extends State<Login> {
   void initState() {
     super.initState();
     pageController = PageController(initialPage: 0, keepPage: true);
-    // _auth = context.read(authServicesProvider);
+    WidgetsBinding.instance?.addPostFrameCallback(
+        (_) => FocusScope.of(context).requestFocus(otpFocusNode));
+    otpFocusNode = FocusNode();
+
     // TODO: add toasts
     fToast = FToast();
     fToast.init(context);
@@ -129,6 +145,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      // key: _scaffoldKey,
       // appBar:  AppBar(
 
       //   automaticallyImplyLeading: true,
@@ -206,6 +223,7 @@ class _LoginState extends State<Login> {
                                           ]),
                                       child: InternationalPhoneNumberInput(
                                         autoFocus: true,
+                                        focusNode: otpFocusNode,
                                         scrollPadding:
                                             EdgeInsets.only(bottom: 120),
                                         onInputChanged: (PhoneNumber number) {
@@ -266,10 +284,104 @@ class _LoginState extends State<Login> {
                                       ),
                                   ],
                                 ),
-                                OtpPage(
-                                    verificationId: verificationId,
-                                    ftoast: fToast,
-                                    prev: prev),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Enter the code you recieved',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.grey[50],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 50,
+                                    ),
+                                    PinCodeTextField(
+                                      appContext: context,
+                                      autoFocus: true,
+                                      keyboardType: TextInputType.number,
+                                      enablePinAutofill: true,
+                                      focusNode: otpFocusNode,
+                                      length: 6,
+                                      obscureText: false,
+                                      animationType: AnimationType.fade,
+                                      pinTheme: PinTheme(
+                                        shape: PinCodeFieldShape.box,
+                                        borderRadius: BorderRadius.circular(5),
+                                        fieldHeight: 50,
+                                        fieldWidth: 40,
+                                        selectedColor: Colors.blueGrey[800],
+                                        selectedFillColor: Colors.white,
+                                        inactiveFillColor: Colors.white,
+                                        activeFillColor: Colors.white,
+                                        inactiveColor: Colors.grey,
+                                      ),
+                                      animationDuration:
+                                          Duration(milliseconds: 300),
+                                      enableActiveFill: true,
+                                      controller: otpController,
+                                      onCompleted: (value) async {
+                                        // if (value.isNotEmpty && widget.verificationId != null) {
+                                          otpFocusNode.unfocus();
+                                        customProgressIdicator(context);
+                                        try {
+                                          PhoneAuthCredential credential =
+                                              PhoneAuthProvider.credential(
+                                                  verificationId:
+                                                      verificationId,
+                                                  smsCode: value);
+                                          await FirebaseAuth.instance
+                                              .signInWithCredential(credential);
+  logger.e( 'otp verified');
+                                          Navigator.pop(context);
+                                        } catch (e) {
+
+                                          Navigator.pop(context);
+                                          showToast(fToast, e.toString());
+                                        }
+                                      },
+                                      onChanged: (value) {
+                                        print(value);
+                                        // setState(() {
+                                        //   currentText = value;
+                                        // });
+                                      },
+                                      beforeTextPaste: (text) {
+                                        print("Allowing to paste $text");
+                                        //if you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
+                                        //but you can show anything you want here, like your pop up saying wrong paste format or etc
+                                        return false;
+                                      },
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        TextButton(
+                                          child: Row(
+                                            children: const [
+                                              Icon(Icons.arrow_back),
+                                              Text(
+                                                'Go back',
+                                                style: TextStyle(
+                                                  // color: Colors.blue,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          onPressed: () {
+                                            // resendOtp();
+                                            prev();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+
                               ],
                             ),
                           ),
@@ -299,11 +411,14 @@ class OtpPage extends StatelessWidget {
       {required this.verificationId,
       required this.ftoast,
       required this.prev,
+      required this.scaffoldKey,
       Key? key})
       : super(key: key);
   final FToast ftoast;
   final String verificationId;
   final Function prev;
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
   late final TextEditingController otpController = TextEditingController();
   late final FocusNode otpFocusNode = FocusNode();
   @override
@@ -358,12 +473,13 @@ class OtpPage extends StatelessWidget {
             controller: otpController,
             onCompleted: (value) async {
               // if (value.isNotEmpty && widget.verificationId != null) {
-              customProgressIdicator(context);
+              customProgressIdicator(scaffoldKey.currentContext!);
               try {
                 PhoneAuthCredential credential = PhoneAuthProvider.credential(
                     verificationId: verificationId, smsCode: value);
                 await FirebaseAuth.instance.signInWithCredential(credential);
-                Navigator.pop(context);
+                Navigator.pop(scaffoldKey.currentContext!);
+                Navigator.pop(scaffoldKey.currentContext!);
               } catch (e) {
                 Navigator.pop(context);
                 showToast(ftoast, e.toString());
