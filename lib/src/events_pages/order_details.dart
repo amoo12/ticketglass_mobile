@@ -292,8 +292,8 @@ class SampleItemDetailsView extends StatelessWidget {
                                             blurStyle: BlurStyle.outer)
                                       ],
                                     ),
-                                    child: event.isScanOpen()
-                                        ? order.scanned == true
+                                    child: !event.isScanOpen()
+                                        ? order.scanned == !true
                                             ? Stack(
                                                 children: [
                                                   QrImage(
@@ -329,7 +329,7 @@ class SampleItemDetailsView extends StatelessWidget {
                                                       child: Container(
                                                         decoration:
                                                             BoxDecoration(
-                                                              color:  Colors.white,
+                                                          color: Colors.white,
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(
@@ -383,8 +383,7 @@ class SampleItemDetailsView extends StatelessWidget {
                                                 ),
                                                 child: Center(
                                                   child: Icon(
-                                                    Icons
-                                                        .lock_outline_rounded,
+                                                    Icons.lock_outline_rounded,
                                                     color: Colors.grey[600],
                                                     size: MediaQuery.of(context)
                                                             .size
@@ -433,7 +432,8 @@ class QrCodeWidget extends ConsumerStatefulWidget {
 class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
   late Timer _timer;
 
-  String _start = '000';
+  String qrData = '000';
+  bool error = false;
   late String? idToken;
 
   // generate qr code every 20 second
@@ -443,28 +443,45 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) async {
-        
-        // TODO: make int separate funcitons for each task
-        // get user token to authenticate on the server
-        idToken = await ref.read(authStateProvider).value?.getIdToken();
+        try {
+          // TODO: make int separate funcitons for each task
+          // get user token to authenticate on the server
+          idToken = await ref.read(authStateProvider).value?.getIdToken();
 
-        // generate a new qr code
-        final res = await http
-            .post(Uri.http('192.168.10.7:3000', '/api/tickets/generateQrString'), body: {
-          'orderId': widget.order.orderId
-        }, headers: {
-          'Authorization': '$idToken',
-        });
+          log.d(idToken);
+          // generate a new qr code
+          final res = await http
+              // .post(Uri.http('192.168.10.7:3000', '/api/qr/generate'), body: {
+              .post(
+                  Uri.http('ticketglass-dev.herokuapp.com', '/api/qr/generate'),
+                  body: {
+                'orderId': widget.order.orderId
+              },
+                  headers: {
+                'Authorization': '$idToken',
+              });
 
-        log.d(idToken);
-        
-        //  decoded & print response body
-        final data = jsonDecode(res.body);
-        // log.d(data);
+          if (res.statusCode == 200) {
+            //  decoded & print response body
+            final data = jsonDecode(res.body);
+            log.d(data);
 
-        setState(() {
-          _start = data['qrString'];
-        });
+            setState(() {
+              qrData = data['qrString'];
+              error = false;
+            });
+          } else {
+            log.e(res.body);
+
+            setState(() {
+              qrData = '000';
+              error = true;
+            });
+          }
+        } catch (e) {
+          // e
+          // log.e(e);
+        }
         // }
       },
     );
@@ -489,16 +506,71 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        QrImage(
-          data: _start,
-          version: QrVersions.auto,
-          // size: 200.0,
-          // embeddedImage: AssetImage('assets/images/flutter_logo.png'),
-          dataModuleStyle:
-              QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle),
-          foregroundColor: Theme.of(context).colorScheme.secondary,
-        ),
+        error == false
+            ? QrImage(
+                data: qrData,
+                version: QrVersions.auto,
+                // size: 200.0,
+                // embeddedImage: AssetImage('assets/images/flutter_logo.png'),
+                dataModuleStyle: QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.circle),
+                foregroundColor: Theme.of(context).colorScheme.secondary,
+              )
+            : Stack(
+                children: [
+                  QrImage(
+                    data: '000',
+                    version: 2,
+                    dataModuleStyle: QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.circle),
+                    foregroundColor: Colors.amber,
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      margin: EdgeInsets.all(2),
+                      // height: MediaQuery.of(context).size.width * 0.44,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.grey.withOpacity(0.5),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 8,
+                              spreadRadius: 3,
+                              blurStyle: BlurStyle.normal)
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            // height: ,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Icon(
+                              Icons.error_outline_rounded,
+                              color: Colors.amber,
+                              size: 50,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Text('Something went wrong!',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              )
       ],
     );
   }
