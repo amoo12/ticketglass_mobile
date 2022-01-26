@@ -1,13 +1,21 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:ticketglass_mobile/src/models/event.dart';
+import 'package:ticketglass_mobile/src/providers/auth_state_provider.dart';
 import 'package:ticketglass_mobile/src/widgets/buttons.dart';
 import 'package:ticketglass_mobile/src/widgets/custom_toast.dart';
 import 'package:ticketglass_mobile/src/widgets/customt_tooltip.dart';
+import 'package:http/http.dart' as http;
+import 'package:ticketglass_mobile/src/widgets/progress_indicator.dart';
+
+Logger logger = Logger();
 
 class EventDetails extends StatelessWidget {
   // ignore: prefer_const_constructors_in_immutables
@@ -103,7 +111,7 @@ class EventDetails extends StatelessWidget {
                           child: Table(
                             defaultVerticalAlignment:
                                 TableCellVerticalAlignment.middle,
-                            columnWidths: {
+                            columnWidths: const {
                               0: FlexColumnWidth(1.5),
                               1: FlexColumnWidth(2),
                             },
@@ -227,7 +235,7 @@ class EventDetails extends StatelessWidget {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => QRViewExample(),
+                              builder: (context) => QRViewExample(eventId: event.id.toString()  ),
                             ));
                       }),
                 ),
@@ -240,19 +248,23 @@ class EventDetails extends StatelessWidget {
   }
 }
 
-class QRViewExample extends StatefulWidget {
-  const QRViewExample({Key? key}) : super(key: key);
+class QRViewExample extends ConsumerStatefulWidget {
+  const QRViewExample({ required this.eventId, Key? key}) : super(key: key);
+  final String eventId;
 
   @override
-  State<StatefulWidget> createState() => _QRViewExampleState();
+  _QRViewExampleState createState() => _QRViewExampleState();
 }
 
-class _QRViewExampleState extends State<QRViewExample> {
+class _QRViewExampleState extends ConsumerState<QRViewExample> {
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   late FToast fToast;
+
+  late String? idToken;
+  bool error = false;
 
   // In order to get hot reload to work we need to pause the camera if the platform
   // is android, or resume the camera if the platform is iOS.
@@ -265,14 +277,12 @@ class _QRViewExampleState extends State<QRViewExample> {
     controller!.resumeCamera();
   }
 
-
-    @override
+  @override
   void initState() {
     // TODO: implement initState
     super.initState();
     fToast = FToast();
     fToast.init(context);
-
   }
 
   @override
@@ -293,7 +303,7 @@ class _QRViewExampleState extends State<QRViewExample> {
                         'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
                   else
                     const Text('Scan a code'),
-                                    Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
@@ -354,21 +364,73 @@ class _QRViewExampleState extends State<QRViewExample> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((scanData) async {
-      // if (scanData != null) {
-        
-      setState(() {
-        result = scanData;
-      });
-
       await controller.pauseCamera();
-  // TODO: Check if ticket is valid (Api call)
+      try {
+        customProgressIdicator(context);
+        idToken = await ref.read(authStateProvider).value?.getIdToken();
+
+        logger.d(idToken);
+              // split the qr code into two parts by _ and get the first part 
+              // and the second part
+          final qrString =   scanData.code?.split('_')[0];
+          final orderId =   scanData.code?.split('_')[1];
+
+        // generate a new qr code
+        final res = await http
+            // .post(Uri.http('192.168.10.7:3000', '/api/qr/generate'), body: {
 
 
-  // conditionally show the appropriate UI
-      qrToast(fToast, 'Invalid Ticket');
-      // qrToast(fToast, 'Ticket scanned');
-      return Navigator.pop(context);
+            .post(Uri.http('ticketglass-dev.herokuapp.com', '/api/qr/scan'),
+                body: {
+                'orderId': orderId,
+                'eventId': widget.eventId,
+                'qrString': qrString
+            },
+                headers: {
+              'Authorization': '$idToken',
+            });
 
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          logger.d(data);
+
+          if (data['scanned'] == true) {
+
+        // await controller.pauseCamera();
+            Navigator.pop(context);
+              qrToast(fToast, 'Ticket scanned');
+            return Navigator.pop(context);
+          }
+          logger.e(res.body);
+          error = true;
+        // await controller.pauseCamera();
+          Navigator.pop(context);
+          qrToast(fToast, 'Invalid Ticket');
+          return Navigator.pop(context);
+        } else {
+          logger.e(res.body);
+          error = true;
+        // await controller.pauseCamera();
+          // Navigator.pop(context);
+          qrToast(fToast, 'error');
+          return Navigator.pop(context);
+        }
+
+        // TODO: Check if ticket is valid (Api call)
+
+        // // conditionally show the appropriate UI
+        // await controller.pauseCamera();
+        // qrToast(fToast, 'error1');
+
+        // Navigator.pop(context);
+        // return Navigator.pop(context);
+      } catch (e) {
+        logger.e(e);
+        error = true;
+        Navigator.pop(context);
+        qrToast(fToast, 'error2');
+        return Navigator.pop(context);
+      }
     });
   }
 
@@ -383,7 +445,7 @@ class _QRViewExampleState extends State<QRViewExample> {
   @override
   void dispose() {
     controller?.dispose();
-    
+
     super.dispose();
   }
 }

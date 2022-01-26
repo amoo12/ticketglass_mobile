@@ -44,7 +44,7 @@ late final TextEditingController otpController = TextEditingController();
       customProgressIdicator(context);
       logger.d('verifying phone number');
       await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: '+97411223344', //phone,
+        phoneNumber: '+97412345678', //phone,
         verificationCompleted: (PhoneAuthCredential credential) async {
           logger.d('verificationCompleted');
 

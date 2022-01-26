@@ -467,7 +467,7 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
             log.d(data);
 
             setState(() {
-              qrData = data['qrString'];
+              qrData = data['qrString'] + '_' + widget.order.orderId;
               error = false;
             });
           } else {

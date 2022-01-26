@@ -120,8 +120,7 @@ class EventsList extends ConsumerWidget {
                       logger.e(snapshot.stackTrace);
                       return Text("${snapshot.error} ");
                     } else {
-                      return Expanded(
-                          child: Center(child: CircularProgressIndicator()));
+                      return Center(child: CircularProgressIndicator());
                     }
                   }),
             ],
