@@ -2,12 +2,14 @@ import 'dart:convert';
 // import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:either_dart/either.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart' as logger;
 import 'package:ticketglass_mobile/src/models/event.dart';
 import 'package:ticketglass_mobile/src/models/order.dart';
 import 'package:ticketglass_mobile/src/providers/auth_state_provider.dart';
+import 'package:ticketglass_mobile/src/services/database_service.dart';
 import 'package:ticketglass_mobile/src/widgets/custom_icons.dart';
 import 'package:ticketglass_mobile/src/widgets/ticket_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -292,63 +294,15 @@ class SampleItemDetailsView extends StatelessWidget {
                                             blurStyle: BlurStyle.outer)
                                       ],
                                     ),
-                                    child: !event.isScanOpen()
-                                        ? order.scanned == !true
-                                            ? Stack(
-                                                children: [
-                                                  QrImage(
-                                                    data: '000',
-                                                    version: 2,
-                                                    dataModuleStyle:
-                                                        QrDataModuleStyle(
-                                                            dataModuleShape:
-                                                                QrDataModuleShape
-                                                                    .circle),
-                                                    foregroundColor:
-                                                        Colors.green,
-                                                  ),
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                      color: Colors.grey
-                                                          .withOpacity(0.7),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                            color: Colors.black
-                                                                .withOpacity(
-                                                                    0.15),
-                                                            blurRadius: 8,
-                                                            spreadRadius: 3,
-                                                            blurStyle: BlurStyle
-                                                                .normal)
-                                                      ],
-                                                    ),
-                                                    child: Center(
-                                                      child: Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      100),
-                                                        ),
-                                                        child: Icon(
-                                                          Icons
-                                                              .check_circle_outline_outlined,
-                                                          color: Colors.green,
-                                                          size: 50,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                ],
-                                              )
+                                    // display correct qr code based on event status
+                                    child: event.isScanOpen()
+                                        ? order.scanned == true
+                                            ? qrPlaceholder(error: false)
                                             : QrCodeWidget(
                                                 event: event, order: order)
-                                        : Stack(
+                                        : order.scanned == true
+                                            ? qrPlaceholder(error: false)
+                                            : Stack(
                                             children: [
                                               QrImage(
                                                 data: '000',
@@ -436,10 +390,12 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
   bool error = false;
   late String? idToken;
 
+  DatabaseService db = DatabaseService();
+
   // generate qr code every 20 second
   void startTimer() async {
     const oneSec = Duration(seconds: 20);
-
+    
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) async {
@@ -487,6 +443,8 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
     );
   }
 
+  // Stream<>
+
   @override
   void initState() {
     // TODO: implement initState
@@ -505,73 +463,100 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        error == false
-            ? QrImage(
-                data: qrData,
-                version: QrVersions.auto,
-                // size: 200.0,
-                // embeddedImage: AssetImage('assets/images/flutter_logo.png'),
-                dataModuleStyle: QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.circle),
-                foregroundColor: Theme.of(context).colorScheme.secondary,
-              )
-            : Stack(
-                children: [
-                  QrImage(
-                    data: '000',
-                    version: 2,
-                    dataModuleStyle: QrDataModuleStyle(
-                        dataModuleShape: QrDataModuleShape.circle),
-                    foregroundColor: Colors.amber,
-                  ),
-                  Positioned.fill(
-                    child: Container(
-                      margin: EdgeInsets.all(2),
-                      // height: MediaQuery.of(context).size.width * 0.44,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.grey.withOpacity(0.5),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 8,
-                              spreadRadius: 3,
-                              blurStyle: BlurStyle.normal)
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            // height: ,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                            child: Icon(
-                              Icons.error_outline_rounded,
-                              color: Colors.amber,
-                              size: 50,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          Text('Something went wrong!',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              )
-      ],
-    );
+    return StreamBuilder<Order>(
+        stream: db.getOrder(widget.order.orderId!),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            Order order = snapshot.data!;
+            if (order.scanned == true) {
+              _timer.cancel();
+
+              return qrPlaceholder(error: false);
+            }
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                error == false
+                    ? QrImage(
+                        data: qrData,
+                        version: QrVersions.auto,
+                        // size: 200.0,
+                        // embeddedImage: AssetImage('assets/images/flutter_logo.png'),
+                        dataModuleStyle: QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.circle),
+                        foregroundColor:
+                            Theme.of(context).colorScheme.secondary,
+                      )
+                    : qrPlaceholder(error: true)
+              ],
+            );
+          } else if (snapshot.hasError) {
+            return qrPlaceholder(error: true);
+          }
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        });
   }
+
+}
+
+
+
+Stack qrPlaceholder({bool error = false}) {
+    return Stack(
+      children: [
+        QrImage(
+          data: '000',
+          version: 2,
+          dataModuleStyle:
+              QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle),
+          foregroundColor: error == false ? Colors.green : Colors.amber,
+        ),
+        Positioned.fill(
+          child: Container(
+            margin: EdgeInsets.all(2),
+            // height: MediaQuery.of(context).size.width * 0.44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey.withOpacity(0.5),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 8,
+                    spreadRadius: 3,
+                    blurStyle: BlurStyle.normal)
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  // height: ,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Icon(
+                    error == false
+                        ? Icons.check_circle_outline_outlined
+                        : Icons.error_outline_rounded,
+                    color: error == false ? Colors.green : Colors.amber,
+                    size: 50,
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Text(error == false ? 'Ticket scanned':'Something went wrong!',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
+              ],
+            ),
+          ),
+        )
+      ],
+  );
 }

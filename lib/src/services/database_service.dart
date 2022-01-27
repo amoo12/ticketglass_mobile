@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:either_dart/either.dart';
 import 'package:logger/logger.dart';
 import 'package:ticketglass_mobile/src/models/event.dart';
 import 'package:ticketglass_mobile/src/models/order.dart';
@@ -69,9 +70,55 @@ class DatabaseService {
     }).toList();
 
     return events;
+  }
 
+
+  // listen to order changes
+  Either<CustomError , Stream<Order>> getOrderStream(String orderId) {
+    try {
+      
+     
+    return Right(
+     ordersCollectionGroup
+        .where('orderId', isEqualTo: orderId)
+        .orderBy('orderTime', descending: false)
+        .snapshots()
+        .map((list) {
+            
+            return list.docs.first.data();
+          }));
+        // });
     
+    
+
+
+  } catch (e) {
+    logger.e(e);
+
+    return Left(
+    CustomError(e.toString())
+    );
+  }
+  }
+  Stream<Order> getOrder(String orderId) {      
+    return 
+     ordersCollectionGroup
+        .where('orderId', isEqualTo: orderId)
+        .snapshots()
+        .map((list) {
+            
+            return list.docs.first.data();
+          });
+    
+    
+
+
+  
   }
 }
 
 
+class CustomError{
+  String message;
+  CustomError(this.message);
+}
