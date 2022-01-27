@@ -5,8 +5,8 @@ import 'package:logger/logger.dart';
 import 'package:ticketglass_mobile/auth_wrapper.dart';
 import 'package:ticketglass_mobile/src/organizer/event_details.dart';
 
-import 'events_pages/order_details.dart';
-import 'events_pages/events_list_view.dart';
+import 'user_pages/order_details.dart';
+import 'user_pages/events_list_view.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 Logger log = Logger();
@@ -107,7 +107,7 @@ class MyApp extends StatelessWidget {
                   case SampleItemDetailsView.routeName:
                     return SampleItemDetailsView();
                     
-                  case SampleItemListView.routeName:
+                  case OrdersList.routeName:
                   default:
                     return Wrapper();
                 }

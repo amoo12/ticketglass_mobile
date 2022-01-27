@@ -6,9 +6,9 @@ import 'package:ticketglass_mobile/src/auth/login.dart';
 import 'package:ticketglass_mobile/src/organizer/events_list.dart';
 
 import 'package:ticketglass_mobile/src/providers/auth_state_provider.dart';
+import 'package:ticketglass_mobile/src/user_pages/events_list_view.dart';
 import 'package:ticketglass_mobile/src/widgets/custom_toast.dart';
-import 'package:ticketglass_mobile/src/widgets/progress_indicator.dart';
-import 'src/events_pages/events_list_view.dart';
+import 'src/user_pages/events_list_view.dart';
 
 class Wrapper extends ConsumerWidget {
    Wrapper({Key? key}) : super(key: key);
@@ -34,7 +34,7 @@ class Wrapper extends ConsumerWidget {
                       idTokenResult.claims?['organizer'] == true) {
                     return EventsList();
                   } else {
-                    return SampleItemListView();
+                    return OrdersList();
                   }
                 } else if (snapshot.hasError) {
                   fToast.init(context);
