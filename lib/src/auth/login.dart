@@ -44,7 +44,7 @@ late final TextEditingController otpController = TextEditingController();
       customProgressIdicator(context);
       logger.d('verifying phone number');
       await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: '+97412345678', //phone,
+        phoneNumber: '+97411223344', //phone,
         verificationCompleted: (PhoneAuthCredential credential) async {
           logger.d('verificationCompleted');
 
@@ -52,6 +52,7 @@ late final TextEditingController otpController = TextEditingController();
 // / ANDROID ONLY!
             // Sign the user in (or link) with the auto-generated credential
             await FirebaseAuth.instance.signInWithCredential(credential);
+
             Navigator.pop(context);
           }
           // TODO: confirm the credential on iOS
@@ -334,7 +335,7 @@ late final TextEditingController otpController = TextEditingController();
                                                   smsCode: value);
                                           await FirebaseAuth.instance
                                               .signInWithCredential(credential);
-  logger.e( 'otp verified');
+                                  logger.e( 'otp verified');
                                           Navigator.pop(context);
                                         } catch (e) {
 

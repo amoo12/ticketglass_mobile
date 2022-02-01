@@ -26,6 +26,7 @@ dependencies:
   qr_code_scanner: ^0.6.1
   just_the_tooltip: ^0.0.11+2
   either_dart: ^0.1.4
+  connectivity_plus: ^2.2.0
 
   flutter:
     sdk: flutter

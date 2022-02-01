@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 // import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -10,13 +11,14 @@ import 'package:ticketglass_mobile/src/models/event.dart';
 import 'package:ticketglass_mobile/src/models/order.dart';
 import 'package:ticketglass_mobile/src/providers/auth_state_provider.dart';
 import 'package:ticketglass_mobile/src/services/database_service.dart';
+import 'package:ticketglass_mobile/src/widgets/connection_snackbar.dart';
 import 'package:ticketglass_mobile/src/widgets/custom_icons.dart';
 import 'package:ticketglass_mobile/src/widgets/ticket_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 
-logger.Logger log = logger.Logger();
+logger.Logger _logger = logger.Logger();
 
 /// Displays detailed information about a SampleItem.
 class SampleItemDetailsView extends StatelessWidget {
@@ -176,7 +178,7 @@ class SampleItemDetailsView extends StatelessWidget {
                                     clipBehavior: Clip.antiAlias,
                                     child: InkWell(
                                       onTap: () => {
-                                        log.i('tapped'),
+                                        _logger.i('tapped'),
                                       },
                                       child: Container(
                                         width:
@@ -303,51 +305,55 @@ class SampleItemDetailsView extends StatelessWidget {
                                         : order.scanned == true
                                             ? qrPlaceholder(error: false)
                                             : Stack(
-                                            children: [
-                                              QrImage(
-                                                data: '000',
-                                                version: 2,
-                                                dataModuleStyle:
-                                                    QrDataModuleStyle(
-                                                        dataModuleShape:
-                                                            QrDataModuleShape
-                                                                .circle),
-                                                foregroundColor:
-                                                    Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary,
-                                              ),
-                                              Container(
-                                                // color:  Colors.black.withOpacity(0.5),
-                                                // rounded corners
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  color: Colors.grey
-                                                      .withOpacity(0.7),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.black
-                                                            .withOpacity(0.15),
-                                                        blurRadius: 8,
-                                                        spreadRadius: 3,
-                                                        blurStyle:
-                                                            BlurStyle.normal)
-                                                  ],
-                                                ),
-                                                child: Center(
-                                                  child: Icon(
-                                                    Icons.lock_outline_rounded,
-                                                    color: Colors.grey[600],
-                                                    size: MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.15,
+                                                children: [
+                                                  QrImage(
+                                                    data: '000',
+                                                    version: 2,
+                                                    dataModuleStyle:
+                                                        QrDataModuleStyle(
+                                                            dataModuleShape:
+                                                                QrDataModuleShape
+                                                                    .circle),
+                                                    foregroundColor:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .secondary,
                                                   ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
+                                                  Container(
+                                                    // color:  Colors.black.withOpacity(0.5),
+                                                    // rounded corners
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                      color: Colors.grey
+                                                          .withOpacity(0.7),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                            color: Colors.black
+                                                                .withOpacity(
+                                                                    0.15),
+                                                            blurRadius: 8,
+                                                            spreadRadius: 3,
+                                                            blurStyle: BlurStyle
+                                                                .normal)
+                                                      ],
+                                                    ),
+                                                    child: Center(
+                                                      child: Icon(
+                                                        Icons
+                                                            .lock_outline_rounded,
+                                                        color: Colors.grey[600],
+                                                        size: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.15,
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
                                   ),
                                   SizedBox(
                                     height: 20,
@@ -390,65 +396,104 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
   bool error = false;
   late String? idToken;
 
+  late Future codeFuture;
+
   DatabaseService db = DatabaseService();
 
+  final snackBar = SnackBar(
+    backgroundColor: Colors.red,
+    action: SnackBarAction(
+      label: 'Dismiss',
+      textColor: Colors.white,
+      onPressed: () {},
+    ),
+    duration: Duration(days: 365),
+    content: Text('No internet Connection'),
+  );
   // generate qr code every 20 second
   void startTimer() async {
     const oneSec = Duration(seconds: 20);
-    
+
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) async {
         try {
-          // TODO: make int separate funcitons for each task
-          // get user token to authenticate on the server
-          idToken = await ref.read(authStateProvider).value?.getIdToken();
-
-          log.d(idToken);
-          // generate a new qr code
-          final res = await http
-              // .post(Uri.http('192.168.10.7:3000', '/api/qr/generate'), body: {
-              .post(
-                  Uri.http('ticketglass-dev.herokuapp.com', '/api/qr/generate'),
-                  body: {
-                'orderId': widget.order.orderId
-              },
-                  headers: {
-                'Authorization': '$idToken',
-              });
-
-          if (res.statusCode == 200) {
-            //  decoded & print response body
-            final data = jsonDecode(res.body);
-            log.d(data);
-
-            setState(() {
-              qrData = data['qrString'] + '_' + widget.order.orderId;
-              error = false;
-            });
-          } else {
-            log.e(res.body);
-
-            setState(() {
-              qrData = '000';
-              error = true;
-            });
-          }
+          await fetchQrCode();
         } catch (e) {
-          // e
-          // log.e(e);
+          setState(() {
+            qrData = '000';
+            error = true;
+          });
         }
-        // }
       },
     );
   }
 
-  // Stream<>
+  // fetch qr code
+  Future<void> fetchQrCode() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        _logger.d('connected', 'connection');
+      }
+      // TODO: make int separate funcitons for each task
+      // get user token to authenticate on the server
+      idToken = await ref.read(authStateProvider).value?.getIdToken();
+
+      _logger.d(idToken);
+      // generate a new qr code
+      final res = await http
+          // .post(Uri.http('192.168.10.7:3000', '/api/qr/generate'), body: {
+          .post(Uri.http('ticketglass-dev.herokuapp.com', '/api/qr/generate'),
+              body: {
+            'orderId': widget.order.orderId
+          },
+              headers: {
+            'Authorization': '$idToken',
+          });
+
+      if (res.statusCode == 200) {
+        //  decoded & print response body
+        final data = jsonDecode(res.body);
+        _logger.d(data);
+
+        setState(() {
+          qrData = data['qrString'] + '_' + widget.order.orderId;
+          error = false;
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        });
+      } else {
+        _logger.e(res.body);
+
+        setState(() {
+          qrData = '000';
+          error = true;
+        });
+      }
+    } on SocketException catch (_) {
+      _logger.d('no connection');
+      connectionSnackbar(context);
+
+      setState(() {
+        qrData = '000';
+        error = true;
+      });
+    } catch (e) {
+      _logger.d(e);
+      setState(() {
+        qrData = '000';
+        error = true;
+      });
+    }
+  }
 
   @override
   void initState() {
     // TODO: implement initState
+    // future to periodically fetch qr data
     startTimer();
+    // future to fetch the first qrcode data only
+    codeFuture = fetchQrCode();
     super.initState();
   }
 
@@ -463,100 +508,111 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Order>(
-        stream: db.getOrder(widget.order.orderId!),
+    return FutureBuilder<void>(
+        future: codeFuture,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            Order order = snapshot.data!;
-            if (order.scanned == true) {
-              _timer.cancel();
+          if (snapshot.connectionState == ConnectionState.done) {
+            _logger.d('future has data');
+            return StreamBuilder<Order>(
+                stream: db.getOrder(widget.order.orderId!),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    Order order = snapshot.data!;
+                    if (order.scanned == true) {
+                      _timer.cancel();
 
-              return qrPlaceholder(error: false);
-            }
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                error == false
-                    ? QrImage(
-                        data: qrData,
-                        version: QrVersions.auto,
-                        // size: 200.0,
-                        // embeddedImage: AssetImage('assets/images/flutter_logo.png'),
-                        dataModuleStyle: QrDataModuleStyle(
-                            dataModuleShape: QrDataModuleShape.circle),
-                        foregroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                      )
-                    : qrPlaceholder(error: true)
-              ],
-            );
+                      return qrPlaceholder(error: false);
+                    }
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        error == false
+                            ? QrImage(
+                                data: qrData,
+                                version: QrVersions.auto,
+                                // size: 200.0,
+                                // embeddedImage: AssetImage('assets/images/flutter_logo.png'),
+                                dataModuleStyle: QrDataModuleStyle(
+                                    dataModuleShape: QrDataModuleShape.circle),
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.secondary,
+                              )
+                            : qrPlaceholder(error: true)
+                      ],
+                    );
+                  } else if (snapshot.hasError) {
+                    return qrPlaceholder(error: true);
+                  }
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                });
           } else if (snapshot.hasError) {
+            _logger.d(snapshot.stackTrace, 'code future snapshot error');
             return qrPlaceholder(error: true);
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
           }
-          return Center(
-            child: CircularProgressIndicator(),
-          );
         });
   }
-
 }
 
-
-
 Stack qrPlaceholder({bool error = false}) {
-    return Stack(
-      children: [
-        QrImage(
-          data: '000',
-          version: 2,
-          dataModuleStyle:
-              QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle),
-          foregroundColor: error == false ? Colors.green : Colors.amber,
-        ),
-        Positioned.fill(
-          child: Container(
-            margin: EdgeInsets.all(2),
-            // height: MediaQuery.of(context).size.width * 0.44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.grey.withOpacity(0.5),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 8,
-                    spreadRadius: 3,
-                    blurStyle: BlurStyle.normal)
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  // height: ,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Icon(
-                    error == false
-                        ? Icons.check_circle_outline_outlined
-                        : Icons.error_outline_rounded,
-                    color: error == false ? Colors.green : Colors.amber,
-                    size: 50,
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(error == false ? 'Ticket scanned':'Something went wrong!',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)),
-              ],
-            ),
+  return Stack(
+    children: [
+      QrImage(
+        data: '000',
+        version: 2,
+        dataModuleStyle:
+            QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle),
+        foregroundColor: error == false ? Colors.green : Colors.amber,
+      ),
+      Positioned.fill(
+        child: Container(
+          margin: EdgeInsets.all(2),
+          // height: MediaQuery.of(context).size.width * 0.44,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.grey.withOpacity(0.5),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 8,
+                  spreadRadius: 3,
+                  blurStyle: BlurStyle.normal)
+            ],
           ),
-        )
-      ],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                // height: ,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Icon(
+                  error == false
+                      ? Icons.check_circle_outline_outlined
+                      : Icons.error_outline_rounded,
+                  color: error == false ? Colors.green : Colors.amber,
+                  size: 50,
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(error == false ? 'Ticket scanned' : 'Something went wrong!',
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+            ],
+          ),
+        ),
+      )
+    ],
   );
 }
