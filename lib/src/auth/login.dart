@@ -35,6 +35,8 @@ late final TextEditingController otpController = TextEditingController();
 
   String verificationId = '';
 
+  bool loading = false;
+
   late FToast fToast;
 
   void getPhoneNumber(PhoneNumber phoneNumber) async {
@@ -288,6 +290,8 @@ late final TextEditingController otpController = TextEditingController();
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    
+                                      
                                     Text(
                                       'Enter the code you recieved',
                                       style: TextStyle(
@@ -296,8 +300,26 @@ late final TextEditingController otpController = TextEditingController();
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
+
                                     SizedBox(
                                       height: 50,
+                                    ),
+                                    Visibility(
+                                      visible:  loading,
+                                      child: Container(
+                                        padding: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                      color: Colors.white,
+                                        // round corners
+                                        borderRadius: BorderRadius.circular(500),
+
+
+                                      
+                                      ),
+                                      
+                                      child: CircularProgressIndicator(backgroundColor: Colors.white,))),
+                                      SizedBox(
+                                      height: 20,
                                     ),
                                     PinCodeTextField(
                                       appContext: context,
@@ -326,7 +348,10 @@ late final TextEditingController otpController = TextEditingController();
                                       onCompleted: (value) async {
                                         // if (value.isNotEmpty && widget.verificationId != null) {
                                           otpFocusNode.unfocus();
-                                        customProgressIdicator(context);
+                                          setState(() {
+                                            loading = true;
+                                          });
+                                        // customProgressIdicator(context);
                                         try {
                                           PhoneAuthCredential credential =
                                               PhoneAuthProvider.credential(
@@ -335,11 +360,28 @@ late final TextEditingController otpController = TextEditingController();
                                                   smsCode: value);
                                           await FirebaseAuth.instance
                                               .signInWithCredential(credential);
-                                  logger.e( 'otp verified');
-                                          Navigator.pop(context);
-                                        } catch (e) {
+                                          // Navigator.pop(_scaffoldKey.currentState!.context);
+                                          // Navigator.pop(context);
+                                          logger.e( 'otp verified');
 
-                                          Navigator.pop(context);
+                                          setState(() {
+                                            loading = false;
+                                          });
+                                          
+                                          
+                                        } on FirebaseAuthException catch(_){
+                                          setState(() {
+                                            loading = false;
+                                          });
+                                          otpController.clear();
+                                          // Navigator.pop(context);
+                                          showToast(fToast, 'Invalid verification code!');
+                                        }
+                                        catch (e) {
+                                          setState(() {
+                                            loading = false;
+                                          });
+                                          // Navigator.pop(context);
                                           showToast(fToast, e.toString());
                                         }
                                       },
@@ -395,134 +437,6 @@ late final TextEditingController otpController = TextEditingController();
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-// class OtpPage extends StatefulWidget {
-//   const OtpPage({required this.verificationId, Key? key}) : super(key: key);
-
-//   @override
-//   _OtpPageState createState() => _OtpPageState();
-// }
-
-class OtpPage extends StatelessWidget {
-  OtpPage(
-      {required this.verificationId,
-      required this.ftoast,
-      required this.prev,
-      required this.scaffoldKey,
-      Key? key})
-      : super(key: key);
-  final FToast ftoast;
-  final String verificationId;
-  final Function prev;
-  final GlobalKey<ScaffoldState> scaffoldKey;
-
-  late final TextEditingController otpController = TextEditingController();
-  late final FocusNode otpFocusNode = FocusNode();
-  @override
-  // void initState() {
-  // TODO: implement initState
-
-  // otpController =
-  // otpFocusNode =
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Enter the code you recieved',
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.grey[50],
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(
-            height: 50,
-          ),
-          PinCodeTextField(
-            appContext: context,
-            autoFocus: true,
-            keyboardType: TextInputType.number,
-            enablePinAutofill: true,
-            focusNode: otpFocusNode,
-            length: 6,
-            obscureText: false,
-            animationType: AnimationType.fade,
-            pinTheme: PinTheme(
-              shape: PinCodeFieldShape.box,
-              borderRadius: BorderRadius.circular(5),
-              fieldHeight: 50,
-              fieldWidth: 40,
-              selectedColor: Colors.blueGrey[800],
-              selectedFillColor: Colors.white,
-              inactiveFillColor: Colors.white,
-              activeFillColor: Colors.white,
-              inactiveColor: Colors.grey,
-            ),
-            animationDuration: Duration(milliseconds: 300),
-            enableActiveFill: true,
-            controller: otpController,
-            onCompleted: (value) async {
-              // if (value.isNotEmpty && widget.verificationId != null) {
-              customProgressIdicator(scaffoldKey.currentContext!);
-              try {
-                PhoneAuthCredential credential = PhoneAuthProvider.credential(
-                    verificationId: verificationId, smsCode: value);
-                await FirebaseAuth.instance.signInWithCredential(credential);
-                Navigator.pop(scaffoldKey.currentContext!);
-                Navigator.pop(scaffoldKey.currentContext!);
-              } catch (e) {
-                Navigator.pop(context);
-                showToast(ftoast, e.toString());
-              }
-            },
-            onChanged: (value) {
-              print(value);
-              // setState(() {
-              //   currentText = value;
-              // });
-            },
-            beforeTextPaste: (text) {
-              print("Allowing to paste $text");
-              //if you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
-              //but you can show anything you want here, like your pop up saying wrong paste format or etc
-              return false;
-            },
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton(
-                child: Row(
-                  children: const [
-                    Icon(Icons.arrow_back),
-                    Text(
-                      'Go back',
-                      style: TextStyle(
-                        // color: Colors.blue,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-                onPressed: () {
-                  // resendOtp();
-                  prev();
-                },
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

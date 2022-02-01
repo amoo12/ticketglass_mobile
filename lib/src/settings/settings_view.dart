@@ -28,46 +28,41 @@ class SettingsView extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            // Glue the SettingsController to the theme selection DropdownButton.
-            //
-            // When a user selects a theme from the dropdown list, the
-            // SettingsController is updated, which rebuilds the MaterialApp.
-            child: DropdownButton<ThemeMode>(
-              // Read the selected themeMode from the controller
-              value: controller.themeMode,
-              // Call the updateThemeMode method any time the user selects a theme.
-              onChanged: controller.updateThemeMode,
-              items: const [
-                DropdownMenuItem(
-                  value: ThemeMode.system,
-                  child: Text('System Theme'),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.light,
-                  child: Text('Light Theme'),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.dark,
-                  child: Text('Dark Theme'),
-                )
-              ],
-            ),
-          ),
-          
-          ButtonWidget(
-            text: 'Logout',
-            onPressed: () async{
-            customProgressIdicator(context);
-            await _auth.signout();
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
+      body: Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        width: MediaQuery.of(context).size.height ,
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            
+            Expanded(child: SizedBox(height: 10,
+            
+            )),
+            SizedBox(
+              width: double.infinity,
+              child: ButtonWidget(
+                
+                text: 'Logout',
+                onPressed: () async {
+                  customProgressIdicator(context);
+                  await _auth.signout();
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
 
-          } ,)
-        ],
+                },
+              ),
+            ),
+            // version
+            Container(
+              padding: EdgeInsets.only(top: 10),
+              child: Text('version: 0.1', style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16
+              ),))
+          
+          ],
+        ),
       ),
     );
   }
