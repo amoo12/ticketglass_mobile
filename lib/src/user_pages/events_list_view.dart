@@ -36,15 +36,8 @@ class _OrdersListState extends ConsumerState<OrdersList> {
   late final uid;
 
   Future<List> getOrders(String uid) async {
-    // if (uid != null) {
     final List orders = await _db.getOrders(uid);
-    // logger.d(orders);
-    // return orders;
-    // }
     return orders;
-    // }
-    // await _db.getOrders(uid);
-    // return
   }
 
   Future<void> _pullRefresh() async {

@@ -56,7 +56,7 @@ class DatabaseService {
 
 
 
-  Future<List<Event>> getEvente(String uid) async {
+  Future<List<Event>> getEvents(String uid) async {
     List<Event> events = [];
     final results = await eventsCollection
         .where('organizerId', isEqualTo: uid)
