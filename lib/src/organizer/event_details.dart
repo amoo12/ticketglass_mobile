@@ -235,12 +235,15 @@ class EventDetails extends StatelessWidget {
                             width: MediaQuery.of(context).size.width * 0.4,
                             height: MediaQuery.of(context).size.width * 0.4,
                             child: ElevatedButton(
-                              style: ButtonStyle(elevation:
-                                  MaterialStateProperty.resolveWith<double>(
-                                (Set<MaterialState> states) {
-                                  return 10.0;
-                                },
-                              )),
+                              
+                              style: ElevatedButton.styleFrom(
+                                primary: Theme.of(context).colorScheme.primaryVariant,
+                                
+                                elevation: 10,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                              ),
                               onPressed: () {
                                 Navigator.push(
                                     context,
@@ -335,48 +338,6 @@ class _QRViewExampleState extends ConsumerState<QRViewExample> {
       body: Column(
         children: <Widget>[
           Expanded(flex: 4, child: _buildQrView(context)),
-          // Expanded(
-          //   flex: 1,
-          //   child: FittedBox(
-          //     fit: BoxFit.contain,
-          //     child: Column(
-          //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //       children: <Widget>[
-          //         if (result != null)
-          //           Text(
-          //               'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
-          //         else
-          //           const Text('Scan a code'),
-          //         // Row(
-          //         //   mainAxisAlignment: MainAxisAlignment.center,
-          //         //   crossAxisAlignment: CrossAxisAlignment.center,
-          //         //   children: <Widget>[
-          //         //     Container(
-          //         //       margin: const EdgeInsets.all(8),
-          //         //       child: ElevatedButton(
-          //         //         onPressed: () async {
-          //         //           await controller?.pauseCamera();
-          //         //         },
-          //         //         child: const Text('pausse',
-          //         //             style: TextStyle(fontSize: 20)),
-          //         //       ),
-          //         //     ),
-          //         //     Container(
-          //         //       margin: const EdgeInsets.all(8),
-          //         //       child: ElevatedButton(
-          //         //         onPressed: () async {
-          //         //           await controller?.resumeCamera();
-          //         //         },
-          //         //         child: const Text('resume',
-          //         //             style: TextStyle(fontSize: 20)),
-          //         //       ),
-          //         //     )
-          //         //   ],
-          //         // ),
-          //       ],
-          //     ),
-          //   ),
-          // )
         ],
       ),
     );

@@ -27,6 +27,8 @@ class SettingsView extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
+        backgroundColor: Theme.of(context).colorScheme.primaryVariant,
+
       ),
       body: Container(
         height: MediaQuery.of(context).size.height * 0.85,

@@ -51,7 +51,7 @@ class SampleItemDetailsView extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: event.imageUrl != null
+              image: event.imageUrl != null 
                   ? CachedNetworkImageProvider(
                       event.imageUrl.toString(),
                       // 'https://firebasestorage.googleapis.com/v0/b/ticketglass-test-696c3.appspot.com/o/events_Images%2FE17DRqZVUAUWCqT.jpg?alt=media&token=18201175-9522-4ce8-ad5e-2538f4fafd13',
@@ -59,11 +59,13 @@ class SampleItemDetailsView extends StatelessWidget {
                       maxHeight: MediaQuery.of(context).size.height.toInt(),
                       maxWidth: MediaQuery.of(context).size.width.toInt(),
                     )
-                  : CachedNetworkImageProvider(
-                      'assets/images/flutter_logo.png'),
+                  : Image.asset('assets/images/Asset.png').image,
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.6), BlendMode.srcATop),
+                  event.imageUrl != null
+                      ? Colors.black.withOpacity(0.6)
+                      : Colors.black.withOpacity(0.0),
+                  BlendMode.srcATop),
             ),
           ),
           child: Stack(

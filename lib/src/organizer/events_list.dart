@@ -53,6 +53,7 @@ class _EventsListState extends ConsumerState<EventsList> {
       backgroundColor: Colors.blueGrey[50],
       appBar: AppBar(
         title: Text('My Events'),
+        backgroundColor: Theme.of(context).colorScheme.primaryVariant,
         actions: [
           IconButton(
             icon: const Icon(
