@@ -11,6 +11,7 @@ import 'package:ticketglass_mobile/src/models/event.dart';
 import 'package:ticketglass_mobile/src/models/order.dart';
 import 'package:ticketglass_mobile/src/providers/auth_state_provider.dart';
 import 'package:ticketglass_mobile/src/services/database_service.dart';
+import 'package:ticketglass_mobile/src/user_pages/ticket_details.dart';
 import 'package:ticketglass_mobile/src/widgets/connection_snackbar.dart';
 import 'package:ticketglass_mobile/src/widgets/custom_icons.dart';
 import 'package:ticketglass_mobile/src/widgets/ticket_svg.dart';
@@ -51,7 +52,7 @@ class SampleItemDetailsView extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: event.imageUrl != null 
+              image: event.imageUrl != null
                   ? CachedNetworkImageProvider(
                       event.imageUrl.toString(),
                       // 'https://firebasestorage.googleapis.com/v0/b/ticketglass-test-696c3.appspot.com/o/events_Images%2FE17DRqZVUAUWCqT.jpg?alt=media&token=18201175-9522-4ce8-ad5e-2538f4fafd13',
@@ -181,6 +182,17 @@ class SampleItemDetailsView extends StatelessWidget {
                                     child: InkWell(
                                       onTap: () => {
                                         _logger.i('tapped'),
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TicketDetails(),
+                                                settings: RouteSettings(
+                                                  name: TicketDetails.routeName,
+                                                  arguments: {
+                                                    'order': order,
+                                                  },
+                                                )))
                                       },
                                       child: Container(
                                         width:

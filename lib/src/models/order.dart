@@ -7,7 +7,7 @@ class Order {
   String? orderId;
   int? orderTime;
   List<int>? quantities;
-  List<Item>? items;
+  List<Item> items;
   double? totalPrice;
   String? txId;
   String? userId;
@@ -17,7 +17,7 @@ class Order {
     this.orderId,
     this.orderTime,
     this.quantities,
-    this.items,
+    required this.items,
     this.totalPrice,
     this.txId,
     this.userId,
@@ -30,7 +30,7 @@ class Order {
       'orderId': orderId,
       'orderTime': orderTime,
       'quantities': quantities,
-      'items': items?.map((x) => x.toMap()).toList(),
+      'items': items.map((x) => x.toMap()).toList(),
       'totalPrice': totalPrice,
       'txId': txId,
       'userId': userId,
@@ -45,8 +45,8 @@ class Order {
       orderTime: map['orderTime']?.toInt(),
       quantities: List<int>.from(map['quantities']),
       items: map['items'] != null
-          ? List<Item>.from(map['items']?.map((x) => Item.fromMap(x)))
-          : null,
+          ? List<Item>.from(map['items'].map((x) => Item.fromMap(x)))
+          : [],
       totalPrice: map['totalPrice']?.toDouble(),
       txId: map['txId'],
       userId: map['userId'],
