@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -22,7 +21,7 @@ class EventDetails extends StatelessWidget {
   EventDetails({Key? key}) : super(key: key);
 
   static const routeName = '/event_details';
-  late final Event event;
+  late Event event;
   @override
   Widget build(BuildContext context) {
     event = ModalRoute.of(context)?.settings.arguments as Event;
@@ -226,18 +225,58 @@ class EventDetails extends StatelessWidget {
                 SizedBox(
                   height: 20,
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ButtonWidget(
-                      context: context,
-                      text: 'Scan tickets',
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => QRViewExample(eventId: event.id.toString()  ),
-                            ));
-                      }),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.4,
+                            height: MediaQuery.of(context).size.width * 0.4,
+                            child: ElevatedButton(
+                              style: ButtonStyle(elevation:
+                                  MaterialStateProperty.resolveWith<double>(
+                                (Set<MaterialState> states) {
+                                  return 10.0;
+                                },
+                              )),
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => QRViewExample(
+                                          eventId: event.id.toString()),
+                                    ));
+                              },
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(
+                                    Icons.qr_code_scanner_rounded,
+                                    size: 100,
+                                  ),
+                                  Text('Scan tickets')
+                                ],
+                              ),
+                            )
+
+                            //  ButtonWidget(
+
+                            //     context: context,
+                            //     text: 'Scan tickets',
+                            //     onPressed: () {
+                            //       Navigator.push(
+                            //           context,
+                            //           MaterialPageRoute(
+                            //             builder: (context) =>
+                            //                 QRViewExample(eventId: event.id.toString()),
+                            //           ));
+                            //     }),
+                            ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -249,7 +288,7 @@ class EventDetails extends StatelessWidget {
 }
 
 class QRViewExample extends ConsumerStatefulWidget {
-  const QRViewExample({ required this.eventId, Key? key}) : super(key: key);
+  const QRViewExample({required this.eventId, Key? key}) : super(key: key);
   final String eventId;
 
   @override
@@ -288,51 +327,56 @@ class _QRViewExampleState extends ConsumerState<QRViewExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: Column(
         children: <Widget>[
           Expanded(flex: 4, child: _buildQrView(context)),
-          Expanded(
-            flex: 1,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  if (result != null)
-                    Text(
-                        'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
-                  else
-                    const Text('Scan a code'),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await controller?.pauseCamera();
-                          },
-                          child: const Text('pausse',
-                              style: TextStyle(fontSize: 20)),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await controller?.resumeCamera();
-                          },
-                          child: const Text('resume',
-                              style: TextStyle(fontSize: 20)),
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          )
+          // Expanded(
+          //   flex: 1,
+          //   child: FittedBox(
+          //     fit: BoxFit.contain,
+          //     child: Column(
+          //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          //       children: <Widget>[
+          //         if (result != null)
+          //           Text(
+          //               'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
+          //         else
+          //           const Text('Scan a code'),
+          //         // Row(
+          //         //   mainAxisAlignment: MainAxisAlignment.center,
+          //         //   crossAxisAlignment: CrossAxisAlignment.center,
+          //         //   children: <Widget>[
+          //         //     Container(
+          //         //       margin: const EdgeInsets.all(8),
+          //         //       child: ElevatedButton(
+          //         //         onPressed: () async {
+          //         //           await controller?.pauseCamera();
+          //         //         },
+          //         //         child: const Text('pausse',
+          //         //             style: TextStyle(fontSize: 20)),
+          //         //       ),
+          //         //     ),
+          //         //     Container(
+          //         //       margin: const EdgeInsets.all(8),
+          //         //       child: ElevatedButton(
+          //         //         onPressed: () async {
+          //         //           await controller?.resumeCamera();
+          //         //         },
+          //         //         child: const Text('resume',
+          //         //             style: TextStyle(fontSize: 20)),
+          //         //       ),
+          //         //     )
+          //         //   ],
+          //         // ),
+          //       ],
+          //     ),
+          //   ),
+          // )
         ],
       ),
     );
@@ -370,23 +414,20 @@ class _QRViewExampleState extends ConsumerState<QRViewExample> {
         idToken = await ref.read(authStateProvider).value?.getIdToken();
 
         logger.d(idToken);
-              // split the qr code into two parts by _ and get the first part 
-              // and the second part
-          final qrString =   scanData.code?.split('_')[0];
-          final orderId =   scanData.code?.split('_')[1];
+        // split the qr code into two parts by _ and get the first part
+        // and the second part
+        final qrString = scanData.code?.split('_')[0];
+        final orderId = scanData.code?.split('_')[1];
 
         // generate a new qr code
-        final res = await http
-            // .post(Uri.http('192.168.10.7:3000', '/api/qr/generate'), body: {
-
-
-            .post(Uri.http('ticketglass-dev.herokuapp.com', '/api/qr/scan'),
-                body: {
-                'orderId': orderId,
-                'eventId': widget.eventId,
-                'qrString': qrString
+        final res = await http.post(
+            Uri.http('ticketglass-dev.herokuapp.com', '/api/qr/scan'),
+            body: {
+              'orderId': orderId,
+              'eventId': widget.eventId,
+              'qrString': qrString
             },
-                headers: {
+            headers: {
               'Authorization': '$idToken',
             });
 
@@ -395,22 +436,21 @@ class _QRViewExampleState extends ConsumerState<QRViewExample> {
           logger.d(data);
 
           if (data['scanned'] == true) {
-
-        // await controller.pauseCamera();
+            // await controller.pauseCamera();
             Navigator.pop(context);
-              qrToast(fToast, 'Ticket scanned');
+            qrToast(fToast, 'Ticket scanned');
             return Navigator.pop(context);
           }
           logger.e(res.body);
           error = true;
-        // await controller.pauseCamera();
+          // await controller.pauseCamera();
           Navigator.pop(context);
           qrToast(fToast, 'Invalid Ticket');
           return Navigator.pop(context);
         } else {
           logger.e(res.body);
           error = true;
-        // await controller.pauseCamera();
+          // await controller.pauseCamera();
           // Navigator.pop(context);
           qrToast(fToast, 'error');
           return Navigator.pop(context);
@@ -428,7 +468,7 @@ class _QRViewExampleState extends ConsumerState<QRViewExample> {
         logger.e(e);
         error = true;
         Navigator.pop(context);
-        qrToast(fToast, 'error2');
+        qrToast(fToast, 'Not ticket glass ticket');
         return Navigator.pop(context);
       }
     });

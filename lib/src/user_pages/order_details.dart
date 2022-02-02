@@ -472,7 +472,7 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
       }
     } on SocketException catch (_) {
       _logger.d('no connection');
-      connectionSnackbar(context);
+      connectionSnackbar(context, false);
 
       setState(() {
         qrData = '000';

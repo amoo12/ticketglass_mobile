@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +27,12 @@ class _WrapperState extends ConsumerState<Wrapper> {
   late StreamSubscription _connectionChangeStream;
   bool isOffline = false;
   void connectionChanged(dynamic hasConnection) {
-    hasConnection == false? connectionSnackbar(context):ScaffoldMessenger.of(context).removeCurrentSnackBar();
+if (hasConnection == false) {
+      connectionSnackbar(context, false);
+    } else {
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      connectionSnackbar(context, true);
+    }
     setState(() {
       isOffline = !hasConnection;
     });
@@ -54,7 +58,7 @@ class _WrapperState extends ConsumerState<Wrapper> {
     return _authState.when(
       data: (user) {
         if (user != null) {
-          if (!isOffline) {
+          // if (!isOffline) {
           return FutureBuilder<IdTokenResult>(
               future: user.getIdTokenResult(),
               builder: (context, snapshot) {
@@ -77,9 +81,9 @@ class _WrapperState extends ConsumerState<Wrapper> {
                 );
               });
         }
-        connectionSnackbar(context);
-        return Login();
-        }
+        //   connectionSnackbar(context);
+        //   return null;
+        // }
         return Login();
       },
       loading: () {

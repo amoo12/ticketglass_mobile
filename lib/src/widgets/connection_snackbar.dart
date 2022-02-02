@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
-final snackBar = SnackBar(
-  backgroundColor: Colors.red,
+connectionSnackbar(BuildContext context, bool connected) async {
+  final snackBar = SnackBar(
+  backgroundColor: connected ? Colors.green: Colors.red,
   action: SnackBarAction(
     label: 'Dismiss',
     textColor: Colors.white,
     onPressed: () {},
   ),
-  duration: Duration(days: 365),
-  content: Text('No internet Connection'),
+  duration: connected ? Duration(seconds: 1): Duration(days: 365),
+  content: Text(connected ? 'Back online':'No internet Connection'),
 );
 
-connectionSnackbar(BuildContext context) {
+
+  await Future.delayed(Duration(seconds: 1));
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
