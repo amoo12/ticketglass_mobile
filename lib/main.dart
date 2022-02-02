@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ticketglass_mobile/src/providers/connection_state_provider.dart';
 
 import 'src/app.dart';
 import 'src/settings/settings_controller.dart';
@@ -28,6 +29,9 @@ void main() async {
   // );
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  ConnectionStatusSingleton connectionStatus =
+      ConnectionStatusSingleton.getInstance();
+  connectionStatus.initialize();
   await Firebase.initializeApp();
   runApp(ProviderScope(child: MyApp(settingsController: settingsController)));
 }

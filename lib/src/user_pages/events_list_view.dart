@@ -2,6 +2,7 @@ import 'package:animations/animations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
 import 'package:ticketglass_mobile/src/models/event.dart';
 import 'package:ticketglass_mobile/src/models/order.dart';
@@ -184,10 +185,10 @@ class _OrdersListState extends ConsumerState<OrdersList> {
                                                                   CircularProgressIndicator())),
                                                   errorWidget:
                                                       (context, url, error) =>
-                                                          Icon(
-                                                    Icons.broken_image_outlined,
-                                                    size: 30,
-                                                  ),
+                                                            Image.asset(
+                                                              'assets/images/Asset.png',
+                                                              fit: BoxFit.cover,
+                                                            )
                                                 ),
                                               ),
                                               Container(
