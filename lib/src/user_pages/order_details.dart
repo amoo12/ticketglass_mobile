@@ -33,15 +33,13 @@ class SampleItemDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // log.i(event);
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     event = args['event'] as Event;
     order = args['order'] as Order;
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
-      // extendBody: true,
-
       appBar: AppBar(
         // title: Text(event.name),
         elevation: 0,
@@ -52,18 +50,18 @@ class SampleItemDetailsView extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: event.imageUrl != null
+              image: event.imageUrl != null && event.imageUrl!.isNotEmpty
                   ? CachedNetworkImageProvider(
                       event.imageUrl.toString(),
-                      // 'https://firebasestorage.googleapis.com/v0/b/ticketglass-test-696c3.appspot.com/o/events_Images%2FE17DRqZVUAUWCqT.jpg?alt=media&token=18201175-9522-4ce8-ad5e-2538f4fafd13',
                       cacheKey: order.eventId,
                       maxHeight: MediaQuery.of(context).size.height.toInt(),
                       maxWidth: MediaQuery.of(context).size.width.toInt(),
                     )
-                  : Image.asset('assets/images/Asset.png').image,
+                  : 
+                  Image.asset('assets/images/Asset.png').image,
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
-                  event.imageUrl != null
+                  event.imageUrl != null && event.imageUrl!.isNotEmpty
                       ? Colors.black.withOpacity(0.6)
                       : Colors.black.withOpacity(0.0),
                   BlendMode.srcATop),
@@ -104,6 +102,7 @@ class SampleItemDetailsView extends StatelessWidget {
                                       children: [
                                         Text(
                                           event.eventName,
+                                          // event.imageUrl.toString(),
                                           style: TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -282,6 +281,7 @@ class SampleItemDetailsView extends StatelessWidget {
                             //   height: 20,
                             // ),
                             Divider(
+                              
                               thickness: 1,
                               color: Theme.of(context)
                                   .primaryColor
@@ -414,16 +414,16 @@ class _QrCodeWidgetState extends ConsumerState<QrCodeWidget> {
 
   DatabaseService db = DatabaseService();
 
-  final snackBar = SnackBar(
-    backgroundColor: Colors.red,
-    action: SnackBarAction(
-      label: 'Dismiss',
-      textColor: Colors.white,
-      onPressed: () {},
-    ),
-    duration: Duration(days: 365),
-    content: Text('No internet Connection'),
-  );
+  // final snackBar = SnackBar(
+  //   backgroundColor: Colors.red,
+  //   action: SnackBarAction(
+  //     label: 'Dismiss',
+  //     textColor: Colors.white,
+  //     onPressed: () {},
+  //   ),
+  //   duration: Duration(days: 365),
+  //   content: Text('No internet Connection'),
+  // );
   // generate qr code every 20 second
   void startTimer() async {
     const oneSec = Duration(seconds: 20);

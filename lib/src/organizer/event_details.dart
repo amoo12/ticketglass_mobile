@@ -404,27 +404,17 @@ class _QRViewExampleState extends ConsumerState<QRViewExample> {
           }
           logger.e(res.body);
           error = true;
-          // await controller.pauseCamera();
           Navigator.pop(context);
           qrToast(fToast, 'Invalid Ticket');
           return Navigator.pop(context);
         } else {
           logger.e(res.body);
           error = true;
-          // await controller.pauseCamera();
-          // Navigator.pop(context);
+           Navigator.pop(context);
           qrToast(fToast, 'error');
           return Navigator.pop(context);
         }
 
-        // TODO: Check if ticket is valid (Api call)
-
-        // // conditionally show the appropriate UI
-        // await controller.pauseCamera();
-        // qrToast(fToast, 'error1');
-
-        // Navigator.pop(context);
-        // return Navigator.pop(context);
       } catch (e) {
         logger.e(e);
         error = true;

@@ -7,10 +7,9 @@ customProgressIdicator(BuildContext context) {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return 
-        // TODO:  prevent pop using back button
-        // WillPopScope(
-        //   onWillPop: () async => false,
-          // child: 
+        WillPopScope(
+          onWillPop: () async => false,
+          child: 
           Container(
             color: Theme.of(context).primaryColor,
             child: Center(
@@ -26,7 +25,7 @@ customProgressIdicator(BuildContext context) {
                 ),
               ),
             ),
-          );
-        // );
+                )
+        );
       });
 }

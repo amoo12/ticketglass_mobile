@@ -186,9 +186,10 @@ class _OrdersListState extends ConsumerState<OrdersList> {
                                               ),
                                               Container(
                                                 //  eventDetails here
-                                                height: 50,
+                                                
+                                                // height: 50,
                                                 padding: EdgeInsets.symmetric(
-                                                    horizontal: 10),
+                                                    horizontal: 10, vertical: 4),
                                                 child: Column(
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
@@ -197,25 +198,28 @@ class _OrdersListState extends ConsumerState<OrdersList> {
                                                     Text(
                                                       events[index].eventName,
                                                       style: TextStyle(
-                                                          fontSize: 20,
+                                                          fontSize: 18,
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           color: Colors
                                                               .blueGrey[800]),
-                                                      // overflow:
-                                                      // TextOverflow.ellipsis,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                     // event start date
                                                     Text(
-                                                      timestampToString(
+                                                      timestampToString( 
                                                           events[index]
                                                               .startDate),
                                                       style: TextStyle(
-                                                        fontSize: 15,
+                                                        fontSize: 16,
                                                         fontWeight:
                                                             FontWeight.w500,
                                                         color: Colors.grey,
+                                                        
                                                       ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                   ],
                                                 ),
